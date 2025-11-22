@@ -98,3 +98,31 @@ func (s *Storage) DeleteURL(alias string) error {
 
 	return nil
 }
+
+func (s *Storage) GetAllAliases() ([]string, error) {
+	const op = "storage.sqlite.GetAllAliases"
+	stmt, err := s.db.Prepare("SELECT alias FROM url")
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+	var aliases []string
+	for rows.Next() {
+		var alias string
+		err = rows.Scan(&alias)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		aliases = append(aliases, alias)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	return aliases, nil
+}

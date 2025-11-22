@@ -1,9 +1,13 @@
 package main
 
 import (
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
+	"net/http"
 	"os"
 	"url-shorter/internal/config"
+	"url-shorter/internal/http-server/handlers/url/save"
 	"url-shorter/internal/storage/sqlite"
 )
 
@@ -27,9 +31,28 @@ func main() {
 	}
 	_ = storage
 
-	//TODO: init router: chi, "chi render"
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 
-	//TODO: run server
+	router.Post("/url", save.New(log, storage, storage))
+	log.Info("s", slog.String("addres", cfg.Address))
+	log.Info("starting server", slog.String("env", cfg.Env))
+
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server")
+	}
+	log.Error("server is not no")
 }
 
 func setupLogger(env string) *slog.Logger {
