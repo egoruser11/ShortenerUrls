@@ -17,7 +17,7 @@ const aliasLength = 6
 
 type Request struct {
 	URL   string `json:"url" validate:"required,url"`
-	Alias string `json:"alias,omitempty"`
+	Alias string `json:"alias,omitempty" validate:"url"`
 }
 
 type Response struct {
@@ -48,7 +48,7 @@ func New(log *slog.Logger, urlSaver URLSaver, urlGetter URLGetter) http.HandlerF
 
 			return
 		}
-		
+
 		log.Info("decode was success", slog.Any("req", req))
 
 		if err := validator.New().Struct(req); err != nil {

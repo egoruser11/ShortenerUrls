@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"os"
 	"url-shorter/internal/config"
+	"url-shorter/internal/http-server/handlers/url/delete"
+	"url-shorter/internal/http-server/handlers/url/get"
+	"url-shorter/internal/http-server/handlers/url/redirect"
 	"url-shorter/internal/http-server/handlers/url/save"
 	"url-shorter/internal/storage/sqlite"
 )
@@ -38,6 +41,10 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(log, storage, storage))
+	router.Get("/url/aliases", get.New(log, storage))
+	router.Get("/{alias}", redirect.New(log, storage))
+	router.Post("/delete", delete.New(log, storage))
+
 	log.Info("s", slog.String("addres", cfg.Address))
 	log.Info("starting server", slog.String("env", cfg.Env))
 
